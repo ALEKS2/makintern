@@ -1,0 +1,87 @@
+<?php
+ session_start();
+ require_once('../db.php');
+ require_once('../autoload.php');
+ $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+ try{
+     $errors = [];
+     $messages = [];
+     
+     if(isset($_POST['student_login'])){
+        $student_number = trim($_POST['student_number']);
+        $student_login = Student::studentLogin($db, $student_number);
+        if($student_login){
+            $_SESSION['student'] = $student_login;
+            header('Location: ../../users/student/index.php'); 
+        }else{
+            $errors[] = "invalid student number";
+            header('Location: ../../index.php');
+        }
+    }
+
+
+    if(isset($_POST['submit_student'])){
+        $name = ucwords(strtolower($_POST['name']));
+        $student_number = $_POST['Student_number'];
+        $reg_number = $_POST['registration_number'];
+        $supervisor_id = $_POST['supervisor'];
+        $college_id = $_POST['college_id'];
+        $excel_status = 'approved';
+        $course_id = $_SESSION['admin']['course_id'];
+        $student = new Student($name, $reg_number, $student_number, $supervisor_id, $college_id, $course_id);
+        $insert = $student->insertStudent($db, $excel_status);
+        var_dump($insert);
+        if($insert == 1){
+            $messages[] = "Student added successfully";
+            header('Location: ../../users/admin/index.php');
+        }else{
+            $errors[] = "add student failed";
+            header('Location: ../../users/admin/index.php');
+            
+        }
+    }
+
+    if(isset($_POST['edu_evaluation'])){
+        $marks = $_POST['marks'];
+        $id = $_POST['id'];
+        if($marks > 100){
+            $errors[] = "marks cannot be greater than 100";
+            header('Location: ../../users/accademic/edu_evaluate.php');
+        }else{
+            $update_marks = Student::updateEducationMarks($db, $id, $marks);
+            if($update_marks){
+                $student_name = Student::getStudentById($db, $id)['name'];
+                $messages[] = "$student_name evaluated successfully";
+                header('Location: ../../users/accademic/index.php');
+            }else{
+                $errors[] = "marks update failed";
+                header('Location: ../../users/accademic/edu_evaluate.php');
+            }
+        }
+    }
+
+    if(isset($_POST['submit_self_evaluation'])){
+        $area_of_interest = trim($_POST['area_of_interest']);
+        $skills_attained = trim($_POST['skills']);
+        $challenges_exprienced = trim($_POST['challenges']);
+        $recommend_students = trim($_POST['recommend']);
+        $student_id = trim($_POST['id']);
+
+        $evaluation = new SelfEvaluation($area_of_interest, $skills_attained, $challenges_exprienced, $recommend_students, $student_id);
+        $insert = $evaluation->insertEvaluation($db);
+        if($insert){
+            $messages[] = "self evaluation Successful";
+            header('Location: ../../users/student/index.php');
+        }else{
+            $errors[] = "evaluation failed";
+            header('Location: ../../users/student/index.php');
+        }
+    }
+
+     
+     $_SESSION['errors'] = $errors;
+     $_SESSION['messages'] = $messages;
+ }catch(Exception $e){
+    echo $error = $e->getMessage();
+ }
