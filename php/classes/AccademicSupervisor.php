@@ -63,8 +63,14 @@
         $stmt->bindParam("college_id", $college_id);
         $stmt->bindParam("course_id", $course_id);
         $stmt->execute();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $results;
+        $rows = $stmt->rowCount();
+        if($rows > 0){
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $results;
+        }else{
+            return false;
+        }
+       
     }
 
     public static function checkIdNumbers($db, $idNumbers){
@@ -114,8 +120,14 @@
         $stmt = $db->prepare($sql);
         $stmt->bindParam("id", $id);
         $stmt->execute();
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $result[0];
+        $rows = $stmt->rowCount();
+        if($rows > 0){
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result[0];
+        }else{
+            return false;
+        }
+        
     }
     public static function approveExcel($db, $course_id){
         $sql = 'UPDATE accademic_supervisor SET excel_status = :exel_status WHERE excel_status = :old_exel_status AND course_id = :course_id';

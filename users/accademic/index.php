@@ -122,7 +122,7 @@ $college_name = College::getCollegeById($db, $user['college_id'])['name'];
             </thead>
             <?php foreach($students as $student){ ?>
                 <tr>
-                    <td><?php echo $student['name']; ?></td>
+                    <td> <a class="text-success" href="./student.php?id=<?php echo $student['id']; ?>"> <?php echo $student['name']; ?></a></td>
                     <td><?php echo $student['student_number']; ?></td>
                     <td><?php echo $student['reg_number']; ?></td>
                     <td><?php echo $student['field_sipervisor_field_marks'] ?></td>

@@ -79,6 +79,22 @@
         }
     }
 
+    if(isset($_POST['submit_company_details'])){
+        $name = trim($_POST['name']);
+        $phone = trim($_POST['phone']);
+        $email = trim($_POST['email']);
+        $student_id = $_POST['id'];
+
+        $company = new Company($name, $email, $phone, $student_id);
+        $insert_company = $company->insertCompany($db);
+        if($insert_company){
+            $messages[] = "Company details added Successfully";
+            header('Location: ../../users/student/index.php');
+        }else{
+            $errors[] = "Failed to add company details";
+            header('Location: ../../users/student/index.php');
+        }
+    }
      
      $_SESSION['errors'] = $errors;
      $_SESSION['messages'] = $messages;

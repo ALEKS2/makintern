@@ -23,8 +23,13 @@ class Token{
         $stmt = $db->prepare($sql);
         $stmt->bindParam("token", $token);
         $stmt->execute();
+        $rows = $stmt->rowCount();
+        if($rows > 0){
         $resultset = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $resultset[0];
+        }else{
+            return false;
+        }
     }
 
     public static function killToken($db, $token){

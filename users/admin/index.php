@@ -119,7 +119,7 @@ if(isset($_SESSION['admin'])){
               if(!empty($students)){
               foreach($students as $student){ ?>
               <tr>
-                <td><?php echo $student['name'] ?></td>
+                <td> <a href="./student.php?id=<?php echo $student['id']; ?>" class="text-success"> <?php echo $student['name'] ?></a></td>
                 <td><?php echo $student['student_number'] ?></td>
                 <td><?php echo $student['reg_number'] ?></td>
                 <?php foreach($academicsupervisors as $academicsupervisor){

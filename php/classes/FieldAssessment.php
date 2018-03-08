@@ -38,7 +38,20 @@ class FieldAssessment{
         $result = $stmt->execute();
         return $result;
     }
-
+    
+    public static function getAssessmentByStudent($db, $student_id){
+        $sql = 'SELECT * FROM field_evaluation WHERE student_id = :student_id';
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(":student_id", $student_id);
+        $stmt->execute();
+        $rows = $stmt->rowCount();
+        if($rows > 0){
+            $resultset = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $resultset[0];
+        }else{
+            return false;
+        }
+    }
     public static function rollBack($db, $student_id){
         $sql = 'DELETE FROM field_evaluation WHERE student_id = :student_id';
         $stmt = $db->prepare($sql);

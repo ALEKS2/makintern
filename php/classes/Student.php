@@ -123,8 +123,13 @@ class Student{
         $stmt = $db->prepare($sql);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
-        $resultset = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $resultset[0];
+        $rows = $stmt->rowCount();
+        if($rows > 0){
+            $resultset = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $resultset[0];
+        }else{
+            return false;
+        }
     }
 
     public static function getPages($db, $college_id, $course_id){
@@ -172,8 +177,13 @@ class Student{
         $stmt = $db->prepare($sql);
         $stmt->bindParam(":student_number", $student_number);
         $stmt->execute();
+        $rows = $stmt->rowCount();
+        if($rows > 0){
         $resultset = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $resultset[0];
+        }else{
+            return false;
+        }
     }
 
     public static function updateFieldInfo($db, $supervisor_id, $field_marks, $student_id){
@@ -233,5 +243,5 @@ class Student{
         $result = $stmt->execute();
     }
 
-    
+
 }

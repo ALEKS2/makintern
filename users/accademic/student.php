@@ -2,18 +2,28 @@
 session_start();
 require_once('../../php/db.php');
 require_once('../../php/autoload.php');
-if(isset($_SESSION['student'])){
-    $user = $_SESSION['student'][0];
+if(isset($_SESSION['accademic_supervisor'])){
+    $user = $_SESSION['accademic_supervisor'];
+   
 }else{
     header('Location: ../../index.php');
 }
-$accdemic_supervisor = AccademicSupervisor::getAccademicSupervisorById($db, $user['academic_supervisor_id']);
-$course = Course::getCourseById($db, $user['course_id']);
-$field_supervisor = FieldSupervisor::gestSupervisorById($db, $user['field_supervisor_id']);
+
+if(isset($_GET['id'])){
+    $id = $_GET['id'];
+}else{
+    header("Location: ./index.php");
+}
+$student = Student::getStudentById($db, $id);
+$accdemic_supervisor = AccademicSupervisor::getAccademicSupervisorById($db, $student['academic_supervisor_id']);
+$course = Course::getCourseById($db, $student['course_id']);
+$field_supervisor = FieldSupervisor::gestSupervisorById($db, $student['field_supervisor_id']);
 $college = College::getCollegeById($db, $user['college_id']);
-$self_evaluation = SelfEvaluation::getSelfEvaluationByStudent($db,$user['id']);
-$company = Company::getCompanyByStudentId($db, $user['id']);
+$self_evaluation = SelfEvaluation::getSelfEvaluationByStudent($db,$id);
+$company = Company::getCompanyByStudentId($db, $id);
+$field_evaluation = FieldAssessment::getAssessmentByStudent($db, $id);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,60 +35,37 @@ $company = Company::getCompanyByStudentId($db, $user['id']);
     <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/navbar.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/student.css">
     <link rel="stylesheet" href="../../assets/css/accademic.css">
-    <title>Mak Intern | Sudent</title>
+    <link rel="stylesheet" href="../../assets/css/student.css">
+    <title>MAK-Intern</title>
 </head>
 <body>
 <div class="mynavbar">
     <a href="index.php" class="mybrand">MAK-Intern</a>
     <ul class="mynav">
       <li class="mynav-link">
-        <a href="index.php" class="myactive">Home</a>
+        <a href="index.php" class="">Home</a>
       </li>
     </ul>
       <a href="../../logout.php" class="logout">Logout</a>
     </ul>
-</div>
+  </div>
 
-<div class="container">
-<?php 
-      if(isset($_SESSION['errors'])){
-        foreach($_SESSION['errors'] as $err){
-        ?>
-        <div class="error text-center">
-          <p><?php echo $err; ?></p>
-        </div>
-        <?php
-        }
-        $_SESSION['errors'] = NULL;
-      }
-      if(isset($_SESSION['messages'])){
-        foreach($_SESSION['messages'] as $message){
-          ?>
-          <div class="message text-center">
-            <p><?php echo $message; ?></p>
-          </div>
-          <?php
-        }
-        $_SESSION['messages'] = NULL;
-      }
-     
-    ?>
+    <div class="container">
     <div class="user_info">
     <h4>Student Infomation</h4>
     <ul class="list-group">
         <li class="list-group-item justify-content-between">
         Name
-            <span class="badge badge-success badge-tab"> <?php echo $user['name']; ?></span>
+            <span class="badge badge-success badge-tab"> <?php echo $student['name']; ?></span>
         </li>
         <li class="list-group-item justify-content-between">
         Registration No
-            <span class="badge badge-success badge-tab"><?php echo $user['reg_number']; ?></span>
+            <span class="badge badge-success badge-tab"><?php echo $student['reg_number']; ?></span>
         </li>
         <li class="list-group-item justify-content-between">
         Student No
-            <span class="badge badge-success badge-tab"><?php echo $user['student_number']; ?></span>
+            <span class="badge badge-success badge-tab"><?php echo $student['student_number']; ?></span>
         </li>
         <li class="list-group-item justify-content-between">
         Accademic Supervisor
@@ -107,16 +94,17 @@ $company = Company::getCompanyByStudentId($db, $user['id']);
 
         <li class="list-group-item justify-content-between">
         Marks
-            <span class="badge badge-success badge-tab"><?php if($user['marks']){ echo $user['marks'];} ?></span>
+            <span class="badge badge-success badge-tab"><?php if($student['marks']){ echo $student['marks'];} ?></span>
         </li>
     </ul>
-    <p></p>
-        <a href="./download.php" class="btn btn-success">Suggested Companies For Internship</a>
+    
         
 
     </div>
-    
+
+
     <div class="self_evaluation">
+        
         <h4>Self Evaluation</h4>
         <?php if($self_evaluation){
           
@@ -148,43 +136,56 @@ $company = Company::getCompanyByStudentId($db, $user['id']);
             <li><?php echo $self_evaluation['recommend_students'] ?></li>
           </ul>
           <?php
-        }else{
+        } ?>
+        <?php
+        if($college['name'] != "education"){
             ?>
-<form action="../../php/handlers/studentHandler.php" method="post">
-            <div class="form-group">
-                <label for="">What has been your best are of interest</label>
-                <input type="text" name="area_of_interest" id="" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="">What skills did you gain (comma separated)</label>
-                <textarea name="skills" id=""  class="form-control"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="">What are some of the challenges you experienced (comma separated)</label>
-                <textarea name="challenges" id=""  class="form-control"></textarea>
-            </div>
-            <label for="">Would you recommend other students to train from the same organisation</label>
-            <div class="form-group">
-                <input type="radio" name="recommend" id="" value="yes" >
-                <label for="">Yes</label>
-                <input type="radio" name="recommend" id="" value="no" >
-                <label for="">No</label>
-            </div>
-            <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-            <input type="submit" value="Submit" name="submit_self_evaluation" class="btn btn-success">
-        </form>
-
+<h4>Field Supervisor Evaluation</h4>
+        <?php if($field_evaluation){
+            ?>
+            <h5>Smartness</h5>
+            <ul>
+                <li><?php echo $field_evaluation['smartness']; ?></li>
+            </ul>
+            <h5>Time Management</h5>
+            <ul>
+                <li><?php echo $field_evaluation['time_management']; ?></li>
+            </ul>
+            <h5>Attendence</h5>
+            <ul>
+                <li><?php echo $field_evaluation['attendence']; ?></li>
+            </ul>
+            <h5>Ability to meet deadlines</h5>
+            <ul>
+                <li><?php echo $field_evaluation['ability_to_meet_deadlines']; ?></li>
+            </ul>
+            <h5>team_work</h5>
+            <ul>
+                <li><?php echo $field_evaluation['team_work']; ?></li>
+            </ul>
+            <h5>Area Of Interest</h5>
+            <ul>
+                <li><?php echo $field_evaluation['student_field_of_interest']; ?></li>
+            </ul>
+            <h5>Field Supervisor's Comment</h5>
+            <ul>
+                <li><?php echo $field_evaluation['general_comment']; ?></li>
+            </ul>
             <?php
         } ?>
-        
+            
+            <?php
+        }
+        ?>
         
     </div>
+
     <div class="company">
         <h4>Company Details</h4>
         <?php
           if($company){
             ?>
-            <h5>Your Phone Number</h5>
+            <h5>Student Phone Number</h5>
             <ul>
                 <li><?php echo $company['student_phone']; ?></li>
             </ul>
@@ -197,34 +198,18 @@ $company = Company::getCompanyByStudentId($db, $user['id']);
                 <li><?php echo $company['email']; ?></li>
              </ul>
             <?php
-          }else{
-              ?>
-              <form action="../../php/handlers/studentHandler.php" method="post">
-            <div class="form-group">
-                <label for="">Your phone number</label>
-                <input type="number" required name="phone" id="" placeholder="Your phone number" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="">Company Name</label>
-                <input type="text" required name="name" id="" placeholder="company name" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="">Company Email</label>
-                <input type="text" required name="email" id="" placeholder="company email" class="form-control">
-            </div>
-            <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-            <input type="submit" value="Submit" name="submit_company_details" class="btn btn-success">
-        </form>
-              <?php
           }
         ?>
         
     </div>
 </div>
     
-
-<div class="footer">
+    </div>
+    
+    <div class="footer">
     <p>&copy; <?php echo date('Y'); ?> Makerere university</p>
 </div>
+<script src="../../assets/js/jquery.js"></script>
+<script src="../../assets/js/bootstrap.min.js"></script>
 </body>
 </html>
