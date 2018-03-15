@@ -20,21 +20,25 @@ if(isset($_POST['submit_accademic_assesment'])){
         if($student){
             $updateStudent = Student::updateAccademicMarks($db, $student_id, $field_marks, $logbook_marks, $reprot_marks);
             if($updateStudent){
-                $marks_from_db = Student::getStudentById($db, $student_id)['marks'];
-                if($marks_from_db){
-                    $new_marks = $total_marks + $marks_from_db;
+                $field_supervisor_marks = Student::getStudentById($db, $student_id)['field_sipervisor_field_marks'];
+                if($field_supervisor_marks){
+                    
+                    $new_marks = $total_marks + $field_supervisor_marks;
+                   
+                    $updatemarks = Student::updateMarks($db, $new_marks, $student_id);
+                    if($updatemarks){
+                        $messages[] = "Student Evaluation Successful";
+                        header('Location: ../../users/accademic/index.php');
+                    }else{
+                        Student::rollbackAccademicMarks($db, $student_id);
+                        $errors[] = "Evaluation failed, please try again";
+                        header('Location: ../../users/accademic/evaluate.php?id='.$student_id);
+                    }
                 }else{
-                    $new_marks = $total_marks;
-                }
-                $updatemarks = Student::updateMarks($db, $new_marks, $student_id);
-                if($updatemarks){
                     $messages[] = "Student Evaluation Successful";
                     header('Location: ../../users/accademic/index.php');
-                }else{
-                    Student::rollbackAccademicMarks($db, $student_id);
-                    $errors[] = "Evaluation failed, please try again";
-                    header('Location: ../../users/accademic/evaluate.php?id='.$student_id);
                 }
+                
             }else{
                 Student::rollbackAccademicMarks($db, $student_id);
                 $errors[] = "Evaluation failed, please try again";

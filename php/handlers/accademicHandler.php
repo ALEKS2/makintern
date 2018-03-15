@@ -1,8 +1,9 @@
 <?php
  session_start();
+ require_once('../../mailfunction.php');
  require_once('../db.php');
  require_once('../autoload.php');
- require_once('./email_handler.php');
+
  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
  try{
      $errors = [];
@@ -50,11 +51,20 @@
             if($insertTocken){
 
                 // send email
-                $message = "You have been registered as an Internship supervisor\n Visit makintern and use the key bellow to set your username and password\n key: $token";
-                // $send_email = sendEmail($email, $message);
-
-                $messages[] = "supervisor added successfully";
-                header('Location: ../../users/admin/index.php');
+                $subject = "supervisor alert";
+                $message = "You have been registered as an Internship supervisor, Visit makintern and use the key bellow to set your username and password <br> <strong style='color: green'>key: $token </strong>";
+                $altmessage = "You have been registered as an Internship supervisor, Visit makintern and use the key bellow to set your username and password key: $token";
+                $send_email = sendMail($message, $subject, $email, $altmessage);
+                if($send_email){
+                    $messages[] = "supervisor added successfully";
+                    header('Location: ../../users/admin/index.php');
+                }else{
+                    AccademicSupervisor::rollBack($db, $id);
+                    $errors[] = "add supervisor failed";
+                    header('Location: ../../users/admin/index.php');
+                }
+                    
+                
             }else{
                 AccademicSupervisor::rollBack($db, $id);
                 $errors[] = "add supervisor failed";

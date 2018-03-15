@@ -1,8 +1,9 @@
 <?php
 session_start();
+require_once('../../mailfunction.php');
 require_once('../classes/Uploader.php');
 require_once('./excelReader.php');
-require_once('./email_handler.php');
+
 require_once('../paths.php');
 require_once('../autoload.php');
 require_once('../db.php');
@@ -58,7 +59,6 @@ if(isset($_POST['submit_student_excel'])){
     if($excel_file){
         $file_data = exceler($excel_file);
         $correctFormat = checkFormat($file_data[0], "student");
-        var_dump($correctFormat);
         if($correctFormat){
             $idnumbers = [];
             foreach($file_data as $data){
@@ -136,8 +136,11 @@ if(isset($_POST['submit_supervisor_excel'])){
                             AccademicSupervisor::rollBack($db, $id);
                             $errors[] = "The supervisor $firstName $lastName was not added";
                         }else{
-                            $message = "You have been registered as an Internship supervisor\n Visit makintern and use the key bellow to set your username and password\n key: $token";
-                            // $send_message = sendEmail($email, $message);
+                            
+                            $subject = "supervisor alert";
+                            $message = "You have been registered as an Internship supervisor, Visit makintern and use the key bellow to set your username and password <br> <strong style='color: green'>key: $token </strong>";
+                            $altmessage = "You have been registered as an Internship supervisor, Visit makintern and use the key bellow to set your username and password key: $token";
+                            $send_email = sendMail($message, $subject, $email, $altmessage);
                         }
                     }else{
                         $errors[] = "The supervisor $firstName $lastName was not added";

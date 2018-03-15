@@ -29,28 +29,33 @@ if(isset($_POST['submit_field_evaluation'])){
                 header('Location: ../../users/field/index.php');
             }else{
                 $marks = $project_marks + $assessment_marks;
-                $marks_from_db = Student::getStudentByStudentNumber($db, $student_number)['marks'];
-                if($marks_from_db){
-                    $new_marks = $marks + $marks_from_db;
-                }else{
-                    $new_marks = $marks;
-                }
+                
+                $accademic_supervisor_marks = Student::getStudentByStudentNumber($db, $student_number)['accademic_supervisor_field_marks'];
+                
                 $student_id = Student::getStudentByStudentNumber($db, $student_number)['id'];
                 $assessment = new FieldAssessment($student_id,  $supervisor_id, $smartness, $time_management, $attendence, $deadlines, $team_work, $area_of_interest, $general_comment);
                 $insert = $assessment->insertAssessment($db);
                 if($insert){
                     $updateStudent = Student::updateFieldInfo($db, $supervisor_id, $marks, $student_id);
                     if($updateStudent){
-                        $update_marks = Student::updateMarks($db, $new_marks, $student_id);
-                        if($update_marks){
+                        if($accademic_supervisor_marks){
+                            $accademic_marks = Student::getStudentByStudentNumber($db, $student_number)['accademic_supervisor_field_marks'] + Student::getStudentByStudentNumber($db, $student_number)['logbook_marks'] + Student::getStudentByStudentNumber($db, $student_number)['report_marks'];
+                            $new_marks = $accademic_marks + $marks;
+                            $update_marks = Student::updateMarks($db, $new_marks, $student_id);
+                            if($update_marks){
+                                $messages[] = "Student Assessed Successfully";
+                                header('Location: ../../users/field/index.php');
+                            }else{
+                                Student::rollbackFieldInfo($db, $student_id);
+                                FieldAssessment::rollBack($db, $student_id);
+                                $errors[] = "assesment failed, please try again";
+                                header('Location: ../../users/field/index.php');
+                            }
+                        }else{
                             $messages[] = "Student Assessed Successfully";
                             header('Location: ../../users/field/index.php');
-                        }else{
-                            Student::rollbackFieldInfo($db, $student_id);
-                            FieldAssessment::rollBack($db, $student_id);
-                            $errors[] = "assesment failed, please try again";
-                            header('Location: ../../users/field/index.php');
                         }
+                        
                     }else{
                         FieldAssessment::rollBack($db, $student_id);
                         $errors[] = "assesment failed, please try again";

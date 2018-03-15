@@ -2,10 +2,14 @@
 require_once('../../vendor/autoload.php');
 function sendEmail($email, $message){
     try {
+        $smtp_server = 'mail.makintern.com';
+        $port = 589;
+        $username = 'noreply@makintern.com';
+        $password = 'henoddo6600';
         // prepare email message
         $message = (new Swift_Message())
                 ->setSubject("Supervisor Alert")
-                ->setFrom(["noreply@alekswebdemos.epizy.com"=>"Mak intern"])
+                ->setFrom(["noreply@makintern.com"=>"Mak intern"])
                 ->setTo([$email])
                 ->setBody($message);
 

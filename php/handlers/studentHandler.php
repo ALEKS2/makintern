@@ -31,7 +31,7 @@
         $course_id = $_SESSION['admin']['course_id'];
         $student = new Student($name, $reg_number, $student_number, $supervisor_id, $college_id, $course_id);
         $insert = $student->insertStudent($db, $excel_status);
-        var_dump($insert);
+        
         if($insert == 1){
             $messages[] = "Student added successfully";
             header('Location: ../../users/admin/index.php');

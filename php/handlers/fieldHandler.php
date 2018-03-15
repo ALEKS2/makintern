@@ -1,8 +1,9 @@
 <?php
  session_start();
+ require_once('../../mailfunction.php');
  require_once('../db.php');
  require_once('../autoload.php');
- require_once('./email_handler.php');
+
  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
  $errors = [];
  $messages = [];
@@ -64,14 +65,23 @@
             $add_token = $supervisorToken->insertTocken($db);
             if($add_token){
                $superviser = FieldSupervisor::gestSupervisorById($db, $id);
+            //    send email
                $email = $superviser['email'];
                $username = $superviser['username'];
-               $message = "Your request for being a field supervisor was approved. Use the key provided to set your password.\n Key= $token";
-            //    $send_email = sendEmail($email, $message); //send the email
+                $subject = "supervisor alert";
+                $message = "Your request for being a field supervisor was approved. Vist makintern.com and Use the key provided to set your password. <br> <strong style='color: green'>key: $token </strong>";
+                $altmessage = "Your request for being a field supervisor was approved. Vist makintern.com and Use the key provided to set your password. Key= $token";
+                $send_email = sendMail($message, $subject, $email, $altmessage);
 
+               if($send_email){
+                    $messages[] = "approval sucessful";
+                    header('Location: ../../users/admin/pending.php');
+               }else{
+                    FieldSupervisor::rollBack($db, $id);
+                    $errors[] = "approval failed";
+                    header('Location: ../../users/admin/pending.php');
+               }
                
-               $messages[] = "approval sucessful";
-               header('Location: ../../users/admin/pending.php');
             }else{
                 FieldSupervisor::rollBack($db, $id);
                 $errors[] = "approval failed";
@@ -87,12 +97,17 @@
         $id = $_POST['id'];
         $superviser = FieldSupervisor::gestSupervisorById($db, $id);
         $email = $superviser['email'];
-        $message = "Your request for being a field supervisor was approved. Use the key provided to set your password.\n Key= $token";
-        // $send_email = sendEmail($email, $message); //send the email
+        $subject = "supervisor alert";
+        $message = "Your request for being a field supervisor was rejected.";
+        $altmessage = "Your request for being a field supervisor was rejected.";
+        
         
         
         $reject = FieldSupervisor::reject($id, $db);
         if($reject == 1){
+            // send email
+            $send_email = sendMail($message, $subject, $email, $altmessage);
+            
             $messages[] = "rejection sucessful";
             header('Location: ../../users/admin/pending.php');
         }else{
@@ -116,7 +131,7 @@
      
      
  }catch(Exception $e){
-    echo $error = $e->getMessage();
+    $error = $e->getMessage();
  }
  $_SESSION['messages'] = $messages;
  $_SESSION['errors'] = $errors;
